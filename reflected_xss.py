@@ -19,7 +19,7 @@ QUERY = '?search=' + urllib.parse.quote('</script><script>alert("' + TO_REFLECT 
 def search(sid):
     service = ChromeService(executable_path=ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service)
-    #driver.maximize_window()
+    
     driver.get('https://' + sid + '.web-security-academy.net/' + QUERY)
     try:
         WebDriverWait(driver, 5).until (EC.alert_is_present())
