@@ -51,7 +51,6 @@ import typer
 import requests
 from rich.console import Console
 from rich.table import Table
-from termcolor import colored
 
 console = Console()
 table = Table(title="/etc/passwd")
